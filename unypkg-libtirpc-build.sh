@@ -35,13 +35,13 @@ mkdir -pv /uny/sources
 cd /uny/sources || exit
 
 pkgname="libtirpc"
-pkggit="https://github.com/libtirpc/libtirpc.git refs/tags/*"
+pkggit="git://git.linux-nfs.org/projects/steved/libtirpc.git refs/tags/*"
 gitdepth="--depth=1"
 
 ### Get version info from git remote
 # shellcheck disable=SC2086
-latest_head="$(git ls-remote --refs --tags --sort="v:refname" $pkggit | grep -E "v[0-9.]+$" | tail --lines=1)"
-latest_ver="$(echo "$latest_head" | grep -o "v[0-9.].*" | sed "s|v||")"
+latest_head="$(git ls-remote --refs --tags --sort="v:refname" $pkggit | grep -E "libtirpc-[0-9-]+$" | tail --lines=1)"
+latest_ver="$(echo "$latest_head" | grep -o "libtirpc-[0-9-].*" | sed -e "s|libtirpc-||" -e "s|-|.|g")"
 latest_commit_id="$(echo "$latest_head" | cut --fields=1)"
 
 version_details
@@ -78,10 +78,13 @@ get_include_paths
 unset LD_RUN_PATH
 
 ./configure \
-    --prefix=/uny/pkg/"$pkgname"/"$pkgver"
+    --prefix=/uny/pkg/"$pkgname"/"$pkgver" \
+    --sysconfdir=/etc/uny \
+    --disable-static \
+    --disable-gssapi
 
 make -j"$(nproc)"
-make -j"$(nproc)" check 
+
 make -j"$(nproc)" install
 
 ####################################################
